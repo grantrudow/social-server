@@ -2,34 +2,45 @@ const express = require('express');
 const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const pg = require('pg');
+const mongoose = require('mongoose');
+const MongoClient = require('mongodb').MongoClient;
 
-const PORT = 4000;
+const connectionString = 'mongodb+srv://admin:Wrangler1!@cluster0.uujdj.mongodb.net/social-network-db?retryWrites=true&w=majority'
 
-const connection = pg.createConnection({
-    host: process.env.RDS_HOSTNAME,
-    user: process.env.RDS_USERNAME,
-    password: process.env.RDS_PASSWORD,
-    port: process.env.RDS_PORT
-});
+MongoClient.connect(connectionString, {useUnifiedTopology: true})
+    .then(client => {
+        console.log('Connected to the database')
+        const db = client.db('social-network-db')
+        const usersCollection = db.collection('users')
 
-connection.connect((err) => {
-    if (err) {
-        console.log('Database connection failed: ' + err.stack);
-        return;
-    }
-    console.log('Conneted database')
-})
+        const PORT = 4000;
 
-app.use(bodyParser.json());
-app.use(cors());
+        app.use(bodyParser.json());
+        app.use(cors());
 
-app.get('/', (req, res) => {
-    res.json('This is the home page')
-})
+        app.post('/signup', (req, res) => {
+            usersCollection.insertOne(req.body)
+            .then(result => {
+                res.redirect('/')
+            })
+            .catch(err => console.log(err))
+        })
 
-app.listen(PORT, () => {
-    console.log('WE OUT HERE BOIIII')
-})
+        app.get('/', (req, res) => {
+            const cursor = db.collection('users').find().toArray()
+                .then(results => {
+                    res.json(results)
+                })
+                .catch(err => console.log(err))
+        })
 
-connection.end();
+        app.listen(PORT, () => {
+            console.log("Heyo it's me the server listening to you")
+        })
+
+    })
+    .catch(err => {
+        console.log(err)
+    })
+
+
