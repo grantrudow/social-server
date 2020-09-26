@@ -4,43 +4,46 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const MongoClient = require('mongodb').MongoClient;
+const passport = require('passport');
 
-const connectionString = 'mongodb+srv://admin:Wrangler1!@cluster0.uujdj.mongodb.net/social-network-db?retryWrites=true&w=majority'
+const users = require('./routes/api/users');
 
-MongoClient.connect(connectionString, {useUnifiedTopology: true})
-    .then(client => {
-        console.log('Connected to the database')
-        const db = client.db('social-network-db')
-        const usersCollection = db.collection('users')
+app.use(bodyParser.urlencoded({
+    extended: false
+}))
+app.use(bodyParser.json());
 
-        const PORT = 4000;
+// DB Config
+const db = require('./config/keys').mongoURI;
 
-        app.use(bodyParser.json());
-        app.use(cors());
+// Connect to MongoDB
+mongoose.connect(db, { 
+    useNewUrlParser: true 
+})
 
-        app.post('/signup', (req, res) => {
-            usersCollection.insertOne(req.body)
-            .then(result => {
-                res.redirect('/')
-            })
-            .catch(err => console.log(err))
-        })
+// Passport middleware
+app.use(passport.initialize())
 
-        app.get('/', (req, res) => {
-            const cursor = db.collection('users').find().toArray()
-                .then(results => {
-                    res.json(results)
-                })
-                .catch(err => console.log(err))
-        })
+// Passport config
+require('./config/passport')(passport);
 
-        app.listen(PORT, () => {
-            console.log("Heyo it's me the server listening to you")
-        })
+// Routes
+app.use('./api/users', users);
 
-    })
-    .catch(err => {
-        console.log(err)
-    })
+
+mongoose.connection.on('error', err => {
+    console.log('error', err)
+})
+
+mongoose.connection.on('connected', (err, res) => {
+    console.log('Mongoose is connected')
+})
+
+const PORT = 4000;
+
+app.listen(PORT, () => {
+    console.log(`App is listening to PORT ${PORT}`)
+})
+
 
 
