@@ -1,5 +1,4 @@
 const express = require('express');
-const app = express();
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const mongoose = require('mongoose');
@@ -8,36 +7,28 @@ const passport = require('passport');
 
 const users = require('./routes/api/users');
 
+const app = express();
+
+// Bodyparser middleware
 app.use(bodyParser.urlencoded({
     extended: false
 }))
-app.use(bodyParser.json());
+app.use(bodyParser.json())
 
 // DB Config
 const db = require('./config/keys').mongoURI;
 
-// Connect to MongoDB
-mongoose.connect(db, { 
-    useNewUrlParser: true 
-})
+// Connect to database
+mongoose.connect(db, {useNewUrlParser: true, useUnifiedTopology: true})
+    .then(() => console.log('Database has connected'))
+    .catch(error => console.log(error));
 
-// Passport middleware
-app.use(passport.initialize())
+// // Import models
+// const { User } = require('./models/User')
 
-// Passport config
+app.use(passport.initialize());
 require('./config/passport')(passport);
-
-// Routes
-app.use('./api/users', users);
-
-
-mongoose.connection.on('error', err => {
-    console.log('error', err)
-})
-
-mongoose.connection.on('connected', (err, res) => {
-    console.log('Mongoose is connected')
-})
+app.use('/api/users', users);
 
 const PORT = 4000;
 

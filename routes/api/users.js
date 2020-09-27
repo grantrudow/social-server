@@ -14,7 +14,7 @@ const User = require('../../models/User');
 // @route POST api/users/register
 // @desc Register user
 // @access Public
-router.post('./register', (req, res) => {
+router.post('/register', (req, res) => {
     // Form validation
 
     const { errors, isValid } = validateRegisterInput(req.body);
@@ -23,9 +23,7 @@ router.post('./register', (req, res) => {
     if (!isValid) {
         return res.status(400).json(errors);
     }
-
-    User.findOne({ email: req.body.email })
-        .then(user => {
+    User.findOne({ email: req.body.email }).then(user => {
             if (user) {
                 return res.status(400).json({ email: 'Email already exists'});
             } else {
