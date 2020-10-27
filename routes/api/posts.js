@@ -7,14 +7,32 @@ const jwt_decode = require('jwt-decode');
 const User = require('../../models/User');
 const Post = require('../../models/Post');
 
-// @route POST api/posts/create
-// @desc Sabe new post
+
+
+// @route GET api/posts/posts
+// @desc View all posts
 // @access Public
-router.post('/create', (req, res) => {
-	// Validate logged in user on frontend
+router.get('/posts', (req, res) => {
 	// Set User Token
 	const token = req.headers.authorization;
+
+	// Decode jwtToken from headers to find User ID
+	const decodedToken = jwt_decode(token, { complete: true })
+
+	// UserId to attach to each post they make
+	const userId = decodedToken.id 
+
+	//Query all posts for that contain userId
 	
+})
+
+// @route POST api/posts/create
+// @desc Save new post
+// @access Public
+router.post('/create', (req, res) => {
+	// Set User Token
+	const token = req.headers.authorization;
+
 	// Decode jwtToken from headers to find User ID
 	const decodedToken = jwt_decode(token, { complete: true })
 
